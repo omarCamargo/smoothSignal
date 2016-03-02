@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QtCore>
+#include <QVector>
 #include <QFileDialog>
 #include <QDebug>
 #include <opencv2/core.hpp>
@@ -24,6 +25,7 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     QVector<double> fromCVMatDoubleToQVector(cv::Mat m);
+    QVector<double> smoothBySavitzkyGolay(QVector<double> x, QVector<double> y, int f, int grade );
 
 private slots:
     void on_pushButton_clicked();
