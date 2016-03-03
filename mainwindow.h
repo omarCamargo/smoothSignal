@@ -5,6 +5,7 @@
 #include <QtCore>
 #include <QVector>
 #include <QFileDialog>
+#include <QElapsedTimer>
 #include <QDebug>
 #include <opencv2/core.hpp>
 #include <opencv2/features2d.hpp>
@@ -30,6 +31,8 @@ public:
 private slots:
     void on_pushButton_clicked();
 
+    void on_pushButton_2_clicked();
+
 private:
     Ui::MainWindow *ui;
     cv::Mat m1;
@@ -40,6 +43,7 @@ private:
     cv::Mat q;
     QVector<double> corrRedVector;
     QVector<double> xAxisVector;
+    QVector<double> mVector;
     std::vector<double> stdCorrRedVector;
 };
 

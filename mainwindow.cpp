@@ -37,26 +37,26 @@ QVector<double> MainWindow::fromCVMatDoubleToQVector(cv::Mat m)
 
 QVector<double> MainWindow::smoothBySavitzkyGolay(QVector<double> x, QVector<double> y, int f, int grade)
 {
+    QElapsedTimer *mtimer = new QElapsedTimer();
+    mtimer->start();
     std::vector<double> xVect =x.toStdVector();
     std::vector<double> yVect =y.toStdVector();
     cv::Mat cvX = cv::Mat(xVect);
     cv::Mat cvY = cv::Mat(yVect);
+    cv::Mat solution;
     int n = x.length();
     f = std::min(f,n);
     f = f- ((f-1) % 2);
-    //qDebug() << f;
-    //diffx = diff(x);
-
-    //std::vector<int> idx;
-    cv::Mat idx = cv::Mat(n,1,CV_8U);
+    //cv::Mat idx = cv::Mat(n,1,CV_8U);
     cv::Mat q = cv::Mat(f,1,CV_64F);
     int ncols = grade+1;
     cv::Mat v = cv::Mat::ones(f,ncols,CV_64F);
-    QVector<double> c(y);
+
+    QVector<double> c;
     int L,R,HF;
-    for(int i= 1; i <= n;i++){
-        idx.at< unsigned int>(i-1,0) = i;
-    }
+//    for(int i= 1; i <= n;i++){
+//        idx.at< unsigned int>(i-1,0) = i;
+//    }
 
     for(int i= 1; i <= n;i++){
         L=i;
@@ -64,34 +64,24 @@ QVector<double> MainWindow::smoothBySavitzkyGolay(QVector<double> x, QVector<dou
         HF = std::ceil(std::max(0,(f - (R-L+1))/2));
         L = std::min(n-f+1, std::max(1,L-HF));
         R = std::min(n,std::max(R+HF,L+f-1));
-//        if(i > 125){
-//            qDebug() << L-1;
-//            qDebug() << R;
-//            qDebug() << cvX.rows;
-//            qDebug() << cvX.cols;
-//            qDebug() << fromCVMatDoubleToQVector( cvX(cv::Rect(0,L-1,1,R)) );
-//            qDebug() << cvX.at<double>(i-1,0);
+        cv::subtract(cvX(cv::Rect(0,L-1,1,f) ), cvX.at<cv::Scalar>(i-1,0), q );
+//        if(i >4999){
+//            qDebug() << fromCVMatDoubleToQVector(q);
+//            cv::Mat m;
+//            cv::pow(q, 2, m);
+//            qDebug() << fromCVMatDoubleToQVector(m);
 //        }
-
-        cv::subtract(cvX(cv::Rect(0,L-1,1,R) ), cvX.at<double>(i-1,0), q );
-        if(i >125){
-            qDebug() << fromCVMatDoubleToQVector(q);
-            cv::Mat m;
-            cv::pow(q, 2, m);
-            qDebug() << fromCVMatDoubleToQVector(m);
-        }
 
         for (int j = 1; j < ncols;j++){
             cv::pow(q, j, v.col(j));
 
         }
+        cv::solve(v,cvY( cv::Rect(0,L-1,1,f) ),solution,cv::DECOMP_QR);
 
-//        for(int k = 0; k < v.rows; k++){
-//            qDebug() << v.at<double>(k,0) << v.at<double>(k,1) << v.at<double>(k,2);
-//        }
-        //qDebug() << "Perrete";
+        c.append( solution.at<double>(0,0) );
 
     }
+    qDebug() << mtimer->elapsed();
     return c;
 
 }
@@ -147,6 +137,37 @@ void MainWindow::on_pushButton_clicked()
 
 //    //qDebug() << fromCVMatDoubleToQVector(m5);
 
-    QVector<double> mVector = smoothBySavitzkyGolay(xAxisVector,corrRedVector,251,2);
+    mVector = smoothBySavitzkyGolay(xAxisVector,corrRedVector,251,2);
+
+}
+
+void MainWindow::on_pushButton_2_clicked()
+{
+    QTextStream out;
+
+       if( !mVector.isEmpty() ){
+           QString fileName = QFileDialog::getSaveFileName(this,
+                                                           tr("Guardar Archivo"),
+                                                           QString(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)),tr("Text files (*.txt)"));
+           if( ! fileName.isEmpty() ){
+               //se dio una dirección: Código
+               QFile file(fileName);
+               file.open(QIODevice::WriteOnly | QIODevice::Text);
+               if(!file.isOpen()){
+                   qDebug()<< ":( vida gono";
+               }else{
+                   out.setDevice(&file);
+                   out << "Frame" << "," << "Value RSmooth"  << endl;
+                   for(int i =0; i < mVector.count();i++){
+                       out << QString::number(xAxisVector.at(i))<<","<<QString::number(mVector.at(i))<< endl;
+                   }
+                   file.flush();
+                   file.close();
+               }
+            }
+       }else{
+           //QMessageBox::warning(this,"Advertencia","No hay señales para exportar");
+           qDebug() << "No hay señales para exportar";
+       }
 
 }
