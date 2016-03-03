@@ -42,8 +42,12 @@ private:
     cv::Mat qr;
     cv::Mat q;
     QVector<double> corrRedVector;
+    QVector<double> corrGreenVector;
+    QVector<double> corrBlueVector;
     QVector<double> xAxisVector;
-    QVector<double> mVector;
+    QVector<double> redSmooth;
+    QVector<double> greenSmooth;
+    QVector<double> blueSmooth;
     std::vector<double> stdCorrRedVector;
 };
 

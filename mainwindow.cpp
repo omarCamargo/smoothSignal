@@ -107,8 +107,8 @@ void MainWindow::on_pushButton_clicked()
                 splitList = lineReaded.split(",",QString::SkipEmptyParts);
                 xAxisVector.append(splitList.at(0).toDouble());
                 corrRedVector.append(splitList.at(1).toDouble());
-                //corrGrennVector.append(splitList.at(2).toDouble());
-                //corrBlueVector.append(splitList.at(3).toDouble());
+                corrGreenVector.append(splitList.at(2).toDouble());
+                corrBlueVector.append(splitList.at(3).toDouble());
                 lineReaded = in.readLine();
             }
 
@@ -137,7 +137,10 @@ void MainWindow::on_pushButton_clicked()
 
 //    //qDebug() << fromCVMatDoubleToQVector(m5);
 
-    mVector = smoothBySavitzkyGolay(xAxisVector,corrRedVector,251,2);
+    redSmooth = smoothBySavitzkyGolay(xAxisVector,corrRedVector,251,2);
+    greenSmooth = smoothBySavitzkyGolay(xAxisVector,corrGreenVector,251,2);
+    blueSmooth =smoothBySavitzkyGolay(xAxisVector,corrBlueVector,251,2);
+
 
 }
 
@@ -145,7 +148,7 @@ void MainWindow::on_pushButton_2_clicked()
 {
     QTextStream out;
 
-       if( !mVector.isEmpty() ){
+       if( !redSmooth.isEmpty() ){
            QString fileName = QFileDialog::getSaveFileName(this,
                                                            tr("Guardar Archivo"),
                                                            QString(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)),tr("Text files (*.txt)"));
@@ -157,9 +160,9 @@ void MainWindow::on_pushButton_2_clicked()
                    qDebug()<< ":( vida gono";
                }else{
                    out.setDevice(&file);
-                   out << "Frame" << "," << "Value RSmooth"  << endl;
-                   for(int i =0; i < mVector.count();i++){
-                       out << QString::number(xAxisVector.at(i))<<","<<QString::number(mVector.at(i))<< endl;
+                   out << "Frame" << "," << "RSmooth" << "," << "GSmooth"<< "," << "BSmooth" << endl;
+                   for(int i =0; i < redSmooth.count();i++){
+                       out << QString::number(xAxisVector.at(i))<<","<<QString::number(redSmooth.at(i))<<","<< QString::number(greenSmooth.at(i))<<","<< QString::number(blueSmooth.at(i))  << endl;
                    }
                    file.flush();
                    file.close();
